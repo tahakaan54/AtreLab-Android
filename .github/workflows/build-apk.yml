@@ -27,8 +27,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Android SDK kur
-        uses: android-actions/setup-android@v3
+      - - name: Android SDK kur
+  uses: android-actions/setup-android@v4
+  with:
+    packages: 'platform-tools'
       - name: Web dosyalarini denetle
         working-directory: project
         run: node scripts/check-web.mjs
