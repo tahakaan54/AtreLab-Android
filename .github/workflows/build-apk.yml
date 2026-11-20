@@ -1,0 +1,62 @@
+name: AtreLab V28 APK - Telefon Kolay Kurulum
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Dosyalari al
+        uses: actions/checkout@v4
+      - name: ZIP parcalarini birlestir ve projeyi ac
+        shell: bash
+        run: |
+          cat AtreLab_V28.zip.part1 AtreLab_V28.zip.part2 > /tmp/AtreLab_V28.zip
+          unzip -tq /tmp/AtreLab_V28.zip
+          mkdir -p project
+          unzip -q /tmp/AtreLab_V28.zip -d project
+          test -f project/package.json
+          test -f project/www/index.html
+      - name: Node.js 22 kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Java 21 kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Android SDK kur
+        uses: android-actions/setup-android@v3
+      - name: Web dosyalarini denetle
+        working-directory: project
+        run: node scripts/check-web.mjs
+      - name: Capacitor bagimliliklarini kur
+        working-directory: project
+        run: npm install --no-audit --no-fund
+      - name: Android projesi olustur
+        working-directory: project
+        run: npx cap add android
+      - name: AtreLab simgesini uygula
+        working-directory: project
+        run: node scripts/brand-android.mjs
+      - name: Web dosyalarini Android'e aktar
+        working-directory: project
+        run: npx cap sync android
+      - name: Gradle kur
+        uses: gradle/actions/setup-gradle@v4
+      - name: APK derle
+        working-directory: project/android
+        shell: bash
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: APK'yi indirilebilir yap
+        uses: actions/upload-artifact@v4
+        with:
+          name: AtreLab-V28-APK
+          path: project/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
