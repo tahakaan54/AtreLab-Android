@@ -1,6 +1,5 @@
 name: AtreLab V28 APK - Telefon Kolay Kurulum
-on:
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 permissions:
   contents: read
 jobs:
